@@ -39,6 +39,8 @@ def process_data(samples):
     items = merged_df['Item'].unique()
     for item in items:
         plt.scatter(x=merged_df[merged_df['Item']==item]['Weight (g)'], y=merged_df[merged_df['Item']==item]['Intensity'], label=item)
+    plt.xlabel('Weight (g)')
+    plt.ylabel('Relative Intensity')  
     plt.legend()
     plt.show()
     
