@@ -29,10 +29,14 @@ items.append('All')
 
 for item in items:
     if item == 'All':
+        count = len(df)
+        min_weight, max_weight = df['Weight (g)'].min(), df['Weight (g)'].max()
         intensity = df['Intensity']
         weight = df['Weight (g)']
     else:
         item_df = df[df['Item'] == item]
+        count = len(item_df)
+        min_weight, max_weight = item_df['Weight (g)'].min(), item_df['Weight (g)'].max()
         intensity = item_df['Intensity'].reset_index(drop=True)
         weight = item_df['Weight (g)'].reset_index(drop=True)
 
@@ -41,7 +45,7 @@ for item in items:
         # plt.show()
         
     MAE, MAPE = evaluate(intensity, weight)
-    print(f"{item}\n MAE: {MAE}, MAPE: {MAPE}")
+    print(f"{item} (n={count})\nMin/Max:  {min_weight}/{max_weight} \nMAE: {round(MAE, 1)}, MAPE: {round(MAPE, 3) * 100}\n")
 
 
 
