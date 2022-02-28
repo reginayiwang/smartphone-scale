@@ -21,10 +21,12 @@ def evaluate(intensity, weight):
     MAPE = mean_absolute_percentage_error(y_true, y_predict)
     return MAE, MAPE
 
-items = ['All', 'Apple', 'Onion', 'Pepper', 'Tableware']
 df = pd.read_csv('./data/data.csv')
 
 # Evaluate model on all items combined and each item type individually
+items = list(pd.unique(df['Item']))
+items.append('All')
+
 for item in items:
     if item == 'All':
         intensity = df['Intensity']
@@ -33,6 +35,7 @@ for item in items:
         item_df = df[df['Item'] == item]
         intensity = item_df['Intensity'].reset_index(drop=True)
         weight = item_df['Weight (g)'].reset_index(drop=True)
+
         # plt.title(item)
         # plt.scatter(weight, intensity)
         # plt.show()

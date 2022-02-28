@@ -22,21 +22,26 @@ def process_data(samples):
     intensities = []
     for i in range(samples):
         df = pd.read_csv(f"./data/accelerometer/accelerometer_{i}.csv")
+
         # plt.title(f"Raw Data: accelerometer_{i}.csv")
         # plt.plot(df['Time (s)'], df['y'])
         # plt.show()
+
         pre_load, with_load = segment_data(df)
-        
         intensity = relative_intensity(pre_load, with_load)
         intensities.append([i, intensity])
 
     intensity_df = pd.DataFrame(intensities, columns=['ID', 'Intensity'])
     weight_df = pd.read_csv('./data/weights.csv')
     merged_df = weight_df.merge(intensity_df, on='ID')
-
-    # plt.scatter(x=merged_df['Weight (g)'], y=merged_df['Intensity'])
-    # plt.show()
     merged_df.to_csv('./data/data.csv', index=False)
+
+    items = merged_df['Item'].unique()
+    for item in items:
+        plt.scatter(x=merged_df[merged_df['Item']==item]['Weight (g)'], y=merged_df[merged_df['Item']==item]['Intensity'], label=item)
+    plt.legend()
+    plt.show()
+    
 
 if len(sys.argv) == 2:
     process_data(int(sys.argv[1]))
