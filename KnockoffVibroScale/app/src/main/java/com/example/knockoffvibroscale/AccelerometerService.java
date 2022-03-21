@@ -46,7 +46,11 @@ public class AccelerometerService extends Service implements SensorEventListener
         // 5000 us sets a sampling rate of 200 Hz
         counter = intent.getIntExtra("counter", 0);
         startTime = SystemClock.elapsedRealtimeNanos();
-        mSensorManager.registerListener(this, mSensor, 5000);
+        mSensorManager.registerListener(this, mSensor, 2500); // pixel3 seems to be limited to 400hz sampling rate or so
+
+        Log.d("ACC,","test output");
+        Log.d("ACC",String.valueOf(mSensor.getMinDelay()));
+
         return Service.START_NOT_STICKY;
     }
 
