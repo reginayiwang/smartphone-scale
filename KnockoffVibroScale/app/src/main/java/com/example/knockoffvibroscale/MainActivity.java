@@ -28,22 +28,24 @@ public class MainActivity extends AppCompatActivity {
     public void onClickWeigh(View view) {
         directions.setText("WAIT");
 
-        // Start accelerometer service
+        // Start services
         Intent intent = new Intent(getApplicationContext(), AccelerometerService.class);
         Intent gyroIntent = new Intent(getApplicationContext(), GyroscopeService.class);
-        intent.putExtra("counter", counter);
+        Intent noGravityIntent = new Intent(getApplicationContext(), LinearAccelerometerService.class);
         intent.putExtra("counter", counter);
         startService(intent);
         startService(gyroIntent);
+        startService(noGravityIntent);
 
         // Tell user to place item after 3 seconds
         final Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> directions.setText("Place item"), 3000);
 
-        // Stop accelerometer service after 8.5 seconds
+        // Stop services after 8.5 seconds
         // This leaves time for the user to place the item
         handler.postDelayed(() -> {
             stopService(new Intent(getApplicationContext(), AccelerometerService.class));
+            stopService(new Intent(getApplicationContext(), LinearAccelerometerService.class));
             stopService(new Intent(getApplicationContext(), GyroscopeService.class));
             directions.setText("");
         }, 8500);
