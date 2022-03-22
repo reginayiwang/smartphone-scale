@@ -30,8 +30,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Start accelerometer service
         Intent intent = new Intent(getApplicationContext(), AccelerometerService.class);
+        Intent gyroIntent = new Intent(getApplicationContext(), GyroscopeService.class);
+        intent.putExtra("counter", counter);
         intent.putExtra("counter", counter);
         startService(intent);
+        startService(gyroIntent);
 
         // Tell user to place item after 3 seconds
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -41,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         // This leaves time for the user to place the item
         handler.postDelayed(() -> {
             stopService(new Intent(getApplicationContext(), AccelerometerService.class));
+            stopService(new Intent(getApplicationContext(), GyroscopeService.class));
             directions.setText("");
         }, 8500);
 
