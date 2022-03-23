@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
         Intent gyroIntent = new Intent(getApplicationContext(), GyroscopeService.class);
         Intent noGravityIntent = new Intent(getApplicationContext(), LinearAccelerometerService.class);
         intent.putExtra("counter", counter);
+        gyroIntent.putExtra("counter", counter);
+        noGravityIntent.putExtra("counter", counter);
         startService(intent);
         startService(gyroIntent);
         startService(noGravityIntent);
