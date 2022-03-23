@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.SensorEventListener;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,10 +26,10 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
     AutoCompleteTextView itemDropdown;
     AutoCompleteTextView amplitudeDropdown;
-    EditText counterInput;
+    SharedPreferences pref;
     private String model;
     private String file_prefix;
-    private int counter = 0;
+    private int counter;
     private String item;
     private String weight;
     private String amplitude;
@@ -51,6 +52,18 @@ public class MainActivity extends AppCompatActivity {
         amplitudeDropdown = (AutoCompleteTextView) binding.amplitude.getEditText();
         amplitudeDropdown.setAdapter(amplitudeAdapter);
 
+        // Retrieve previous counter value if it exists
+        pref = getPreferences(Context.MODE_PRIVATE);
+        counter = pref.getInt(getString(R.string.counter_key), 0);
+        binding.counter.getEditText().setText(String.valueOf(counter + 1));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putInt(getString(R.string.counter_key), counter);
+        editor.apply();
     }
 
     public void decrementCounter(View view) {

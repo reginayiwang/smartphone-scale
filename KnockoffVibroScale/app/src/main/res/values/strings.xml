@@ -9,4 +9,5 @@
         <item>High</item>
         <item>Low</item>
     </string-array>
+    <string name="counter_key">counterValue</string>
 </resources>
