@@ -8,6 +8,11 @@
     <string-array name="amplitude_array">
         <item>High</item>
         <item>Low</item>
+        <item>High-Low</item>
+        <item>Increasing</item>
     </string-array>
+    <string name="high_amp">High</string>
+    <string name="increasing_amp">Increasing</string>
+    <string name="high_low">High-Low</string>
     <string name="counter_key">counterValue</string>
 </resources>
