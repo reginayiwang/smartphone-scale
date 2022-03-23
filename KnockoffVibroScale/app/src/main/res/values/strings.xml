@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">KnockoffVibroScale</string>
+    <string-array name="item_array">
+        <item>Apple</item>
+        <item>Onion</item>
+        <item>Pear</item>
+    </string-array>
+    <string-array name="amplitude_array">
+        <item>High</item>
+        <item>Low</item>
+    </string-array>
 </resources>

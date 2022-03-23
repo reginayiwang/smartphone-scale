@@ -25,6 +25,7 @@ import java.util.Locale;
 
 public class AccelerometerService extends Service implements SensorEventListener {
     private int counter;
+    private String file_prefix;
     private long startTime;
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -45,6 +46,7 @@ public class AccelerometerService extends Service implements SensorEventListener
         // Start listening for sensor events
         // 5000 us sets a sampling rate of 200 Hz
         counter = intent.getIntExtra("counter", 0);
+        file_prefix = intent.getStringExtra("prefix");
         startTime = SystemClock.elapsedRealtimeNanos();
         mSensorManager.registerListener(this, mSensor, 2500); // pixel3 seems to be limited to 400hz sampling rate or so
 
@@ -89,7 +91,7 @@ public class AccelerometerService extends Service implements SensorEventListener
     * Saves accelerometer data to file in Downloads folder.
     */
     public void saveToFile() {
-        String filename = "accelerometer_" + counter + ".csv";
+        String filename = file_prefix + "accelerometer_" + counter + ".csv";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
 
         try (CsvWriter csv = CsvWriter.builder().build(file.getAbsoluteFile().toPath())) {

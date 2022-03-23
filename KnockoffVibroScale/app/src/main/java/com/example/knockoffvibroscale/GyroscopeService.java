@@ -25,6 +25,7 @@ import java.util.Locale;
 
 public class GyroscopeService extends Service implements SensorEventListener {
     private int counter;
+    private String file_prefix;
     private long startTime;
     private SensorManager sensorManager;
     private Sensor sensor;
@@ -44,6 +45,7 @@ public class GyroscopeService extends Service implements SensorEventListener {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         counter = intent.getIntExtra("counter", 0);
+        file_prefix = intent.getStringExtra("prefix");
         startTime = SystemClock.elapsedRealtimeNanos();
         sensorManager.registerListener(this, sensor, 2500); // What sampling period here?
 
@@ -82,7 +84,7 @@ public class GyroscopeService extends Service implements SensorEventListener {
      * Saves gyroscope data to file in Downloads folder.
      */
     public void saveToFile() {
-        String filename = "gyroscope_" + counter + ".csv";
+        String filename = file_prefix + "gyroscope_" + counter + ".csv";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
 
         try (CsvWriter csv = CsvWriter.builder().build(file.getAbsoluteFile().toPath())) {

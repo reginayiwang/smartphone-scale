@@ -25,6 +25,7 @@ import java.util.Locale;
 
 public class LinearAccelerometerService extends Service implements SensorEventListener {
     private int counter;
+    private String file_prefix;
     private long startTime;
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -44,6 +45,7 @@ public class LinearAccelerometerService extends Service implements SensorEventLi
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Same sampling rate as Linear accelerometer
         counter = intent.getIntExtra("counter", 0);
+        file_prefix = intent.getStringExtra("prefix");
         startTime = SystemClock.elapsedRealtimeNanos();
         mSensorManager.registerListener(this, mSensor, 2500);
 
@@ -80,7 +82,7 @@ public class LinearAccelerometerService extends Service implements SensorEventLi
      * Saves linear accelerometer data to file in Downloads folder.
      */
     public void saveToFile() {
-        String filename = "accelerometer_noGravity_" + counter + ".csv";
+        String filename = file_prefix + "accelerometer-noGravity_" + counter + ".csv";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
 
         try (CsvWriter csv = CsvWriter.builder().build(file.getAbsoluteFile().toPath())) {
