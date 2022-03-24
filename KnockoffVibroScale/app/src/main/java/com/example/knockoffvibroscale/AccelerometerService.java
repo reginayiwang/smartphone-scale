@@ -62,7 +62,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         // Stop listening for sensor events and save data to file
         mSensorManager.unregisterListener(this);
         saveToFile();
-        data.clear();
     }
 
     @Override
@@ -104,5 +103,6 @@ public class AccelerometerService extends Service implements SensorEventListener
             Log.e(this.getClass().getName(), e.getMessage());
             Toast.makeText(this, "Could not save file.", Toast.LENGTH_LONG).show();
         }
+        data.clear();
     }
 }

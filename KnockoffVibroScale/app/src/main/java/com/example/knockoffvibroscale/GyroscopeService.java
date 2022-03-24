@@ -57,7 +57,6 @@ public class GyroscopeService extends Service implements SensorEventListener {
         super.onDestroy();
         sensorManager.unregisterListener(this);
         saveToFile();
-        data.clear();
     }
 
     @Override
@@ -96,5 +95,6 @@ public class GyroscopeService extends Service implements SensorEventListener {
         } catch (final IOException e) {
             Toast.makeText(this, "Could not save file.", Toast.LENGTH_LONG).show();
         }
+        data.clear();
     }
 }

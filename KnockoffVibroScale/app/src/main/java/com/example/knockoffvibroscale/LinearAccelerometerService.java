@@ -57,7 +57,6 @@ public class LinearAccelerometerService extends Service implements SensorEventLi
         super.onDestroy();
         mSensorManager.unregisterListener(this);
         saveToFile();
-        data.clear();
     }
 
     @Override
@@ -95,5 +94,6 @@ public class LinearAccelerometerService extends Service implements SensorEventLi
             Log.e(this.getClass().getName(), e.getMessage());
             Toast.makeText(this, "Could not save file.", Toast.LENGTH_LONG).show();
         }
+        data.clear();
     }
 }
