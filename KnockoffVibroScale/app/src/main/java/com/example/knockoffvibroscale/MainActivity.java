@@ -5,28 +5,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.hardware.SensorEventListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
-import android.widget.TextView;
 
 import com.example.knockoffvibroscale.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveDialog {
     ActivityMainBinding binding;
     AutoCompleteTextView itemDropdown;
     AutoCompleteTextView amplitudeDropdown;
     SharedPreferences pref;
+    SaveDialog dialog;
     private String model;
     private String file_prefix;
     private int counter;
@@ -41,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         model = Build.MODEL.replace(" ", "");
+        dialog = new SaveDialog();
 
         // Populate dropdown menus
         ArrayAdapter<CharSequence> itemAdapter = ArrayAdapter.createFromResource(this,
@@ -112,11 +110,8 @@ public class MainActivity extends AppCompatActivity {
             // Stop services after 8.5 seconds
             // This leaves time for the user to place the item
             handler.postDelayed(() -> {
-                stopService(new Intent(getApplicationContext(), AccelerometerService.class));
-                stopService(new Intent(getApplicationContext(), LinearAccelerometerService.class));
-                stopService(new Intent(getApplicationContext(), GyroscopeService.class));
+                openDialog();
                 binding.directions.setText("");
-                binding.counter.getEditText().setText(String.valueOf(counter + 1));
                 vibrator.cancel();
             }, 8500);
 
@@ -124,6 +119,28 @@ public class MainActivity extends AppCompatActivity {
             vibrate(vibrator, amplitude);
         }
     }
+
+    /**
+     * Open save dialog
+     */
+    public void openDialog() {
+        SaveDialog saveDialog = new SaveDialog();
+        saveDialog.show(getSupportFragmentManager(), "Save Dialog");
+    }
+
+    /**
+     * Stop services, increment counter, and save data
+     */
+    @Override
+    public void saveData() {
+        stopService(new Intent(getApplicationContext(), AccelerometerService.class));
+        stopService(new Intent(getApplicationContext(), LinearAccelerometerService.class));
+        stopService(new Intent(getApplicationContext(), GyroscopeService.class));
+
+        binding.counter.getEditText().setText(String.valueOf(counter + 1));
+
+    }
+
 
     private void vibrate(Vibrator vibrator, String amplitude) {
         VibrationEffect effect;
