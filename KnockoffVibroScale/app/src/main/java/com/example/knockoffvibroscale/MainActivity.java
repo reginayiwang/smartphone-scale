@@ -78,8 +78,8 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
         SharedPreferences.Editor editor = pref.edit();
         editor.putInt(getString(R.string.counter_key), counter);
         editor.apply();
