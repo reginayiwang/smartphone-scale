@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
     SharedPreferences pref;
     SaveDialog dialog;
     private String model;
-    private String file_prefix;
+    private String filePrefix;
     private int counter;
     private String item;
     private String weight;
@@ -84,24 +84,16 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
             weight = String.valueOf(binding.weight.getEditText().getText()).trim();
             amplitude = String.valueOf(amplitudeDropdown.getText());
             counter = Integer.parseInt(binding.counter.getEditText().getText().toString().trim());
-            file_prefix = model + "_" + item + "_" + weight + "_" + amplitude + "_";
+            filePrefix = model + "_" + item + "_" + weight + "_" + amplitude + "_";
 
             binding.directions.setText("Wait");
 
             // Start services
             Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            Intent accIntent = new Intent(getApplicationContext(), AccelerometerService.class);
-            Intent gyroIntent = new Intent(getApplicationContext(), GyroscopeService.class);
-            Intent noGravityIntent = new Intent(getApplicationContext(), LinearAccelerometerService.class);
-            accIntent.putExtra("counter", counter);
-            gyroIntent.putExtra("counter", counter);
-            noGravityIntent.putExtra("counter", counter);
-            accIntent.putExtra("prefix", file_prefix);
-            gyroIntent.putExtra("prefix", file_prefix);
-            noGravityIntent.putExtra("prefix", file_prefix);
-            startService(accIntent);
-            startService(gyroIntent);
-            startService(noGravityIntent);
+            Intent intent = new Intent(getApplicationContext(), SensorService.class);
+            intent.putExtra(getResources().getString(R.string.counter), counter);
+            intent.putExtra(getResources().getString(R.string.prefix), filePrefix);
+            startService(intent);
 
             // Tell user to place item after 3 seconds
             final Handler handler = new Handler(Looper.getMainLooper());
@@ -133,12 +125,8 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
      */
     @Override
     public void saveData() {
-        stopService(new Intent(getApplicationContext(), AccelerometerService.class));
-        stopService(new Intent(getApplicationContext(), LinearAccelerometerService.class));
-        stopService(new Intent(getApplicationContext(), GyroscopeService.class));
-
+        stopService(new Intent(getApplicationContext(), SensorService.class));
         binding.counter.getEditText().setText(String.valueOf(counter + 1));
-
     }
 
 

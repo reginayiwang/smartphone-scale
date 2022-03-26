@@ -15,21 +15,26 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KnockoffVibroScale">
         <service
+            android:name=".SensorService"
+            android:enabled="true"
+            android:exported="true"></service>
+        <service
             android:name=".AccelerometerService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
         <service
             android:name=".LinearAccelerometerService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
         <service
             android:name=".GyroscopeService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
+
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
