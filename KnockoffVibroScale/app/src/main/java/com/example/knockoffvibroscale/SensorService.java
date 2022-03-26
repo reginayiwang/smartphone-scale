@@ -28,7 +28,6 @@ public class SensorService extends Service implements SensorEventListener {
     IBinder binder = new SensorBinder();
     private int counter;
     private String filePrefix;
-    private long startTime;
     private SensorManager sensorManager;
     private Sensor accSensor;
     private Sensor gyroSensor;
@@ -51,18 +50,12 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // Calculate elapsed time
-        double time = (event.timestamp - startTime) * 1e-9;
-        DecimalFormat format = (DecimalFormat) NumberFormat.getInstance(Locale.ENGLISH);
-        format.applyPattern("0.000000000E0");
-
-        // Add new sensor values to list
         if(event.sensor.getType()==Sensor.TYPE_ACCELEROMETER){
-            accData.add(new String[]{format.format(time), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
+            accData.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
         } else if (event.sensor.getType()==Sensor.TYPE_GYROSCOPE){
-            gyroData.add(new String[]{format.format(time), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
+            gyroData.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
         } else if(event.sensor.getType()==Sensor.TYPE_LINEAR_ACCELERATION){
-            noGravData.add(new String[]{format.format(time), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
+            noGravData.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
         }
     }
 
@@ -77,7 +70,6 @@ public class SensorService extends Service implements SensorEventListener {
         // 2500 us sets a sampling rate of 400 Hz
         counter = intent.getIntExtra(getResources().getString(R.string.counter), 0);
         filePrefix = intent.getStringExtra(getResources().getString(R.string.prefix));
-        startTime = SystemClock.elapsedRealtimeNanos();
         sensorManager.registerListener(this, accSensor, 2500); // pixel3 seems to be limited to 400hz sampling rate or so
         sensorManager.registerListener(this, gyroSensor, 2500);
         sensorManager.registerListener(this, noGravSensor, 2500);
