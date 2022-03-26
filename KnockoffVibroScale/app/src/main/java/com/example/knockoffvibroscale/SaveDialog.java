@@ -20,11 +20,13 @@ public class SaveDialog extends AppCompatDialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         // Save Weigh Data
                         listener.saveData();
+                        listener.stopService();
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // Cancel Save
+                        listener.stopService();
                     }
                 });
         // Create the AlertDialog object and return it
@@ -46,5 +48,6 @@ public class SaveDialog extends AppCompatDialogFragment {
 
     public interface ISaveDialog {
         void saveData();
+        void stopService();
     }
 }

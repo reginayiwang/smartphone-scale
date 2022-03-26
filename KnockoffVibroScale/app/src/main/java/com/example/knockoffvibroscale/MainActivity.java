@@ -2,15 +2,19 @@ package com.example.knockoffvibroscale;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -19,6 +23,23 @@ import android.widget.AutoCompleteTextView;
 import com.example.knockoffvibroscale.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveDialog {
+    boolean serviceBounded;
+    SensorService sensorService;
+    ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBounded = false;
+            sensorService = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            serviceBounded = true;
+            SensorService.SensorBinder binder = (SensorService.SensorBinder) service;
+            sensorService = binder.getSensorService();
+        }
+    };
+
     ActivityMainBinding binding;
     AutoCompleteTextView itemDropdown;
     AutoCompleteTextView amplitudeDropdown;
@@ -93,18 +114,19 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
             Intent intent = new Intent(getApplicationContext(), SensorService.class);
             intent.putExtra(getResources().getString(R.string.counter), counter);
             intent.putExtra(getResources().getString(R.string.prefix), filePrefix);
-            startService(intent);
+            bindService(intent, connection, BIND_AUTO_CREATE);
 
             // Tell user to place item after 3 seconds
             final Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(() -> binding.directions.setText("Place item"), 3000);
 
-            // Stop services after 8.5 seconds
+            // Stop vibration and sensor collection after 8.5 seconds
             // This leaves time for the user to place the item
             handler.postDelayed(() -> {
-                openDialog();
                 binding.directions.setText("");
                 vibrator.cancel();
+                sensorService.stopListener();
+                openDialog();
             }, 8500);
 
             // Vibrate phone for 8.5 seconds
@@ -121,14 +143,23 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
     }
 
     /**
-     * Stop services, increment counter, and save data
+     * Increment counter and save data
      */
     @Override
     public void saveData() {
-        stopService(new Intent(getApplicationContext(), SensorService.class));
+        sensorService.saveToFile(getResources().getString(R.string.acc));
+        sensorService.saveToFile(getResources().getString(R.string.gyro));
+        sensorService.saveToFile(getResources().getString(R.string.noGrav));
         binding.counter.getEditText().setText(String.valueOf(counter + 1));
     }
 
+    /**
+     * Unbind sensor service
+     */
+    @Override
+    public void stopService() {
+        unbindService(connection);
+    }
 
     private void vibrate(Vibrator vibrator, String amplitude) {
         VibrationEffect effect;

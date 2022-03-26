@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class SensorService extends Service implements SensorEventListener {
+    IBinder binder = new SensorBinder();
     private int counter;
     private String filePrefix;
     private long startTime;
@@ -48,29 +50,6 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        // Start listening for sensor events
-        // 2500 us sets a sampling rate of 400 Hz
-        counter = intent.getIntExtra("counter", 0);
-        filePrefix = intent.getStringExtra("prefix");
-        startTime = SystemClock.elapsedRealtimeNanos();
-        sensorManager.registerListener(this, accSensor, 2500); // pixel3 seems to be limited to 400hz sampling rate or so
-        sensorManager.registerListener(this, gyroSensor, 2500);
-        sensorManager.registerListener(this, noGravSensor, 2500);
-        return Service.START_NOT_STICKY;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        // Stop listening for sensor events and save data to file
-        sensorManager.unregisterListener(this);
-        saveToFile(getResources().getString(R.string.acc));
-        saveToFile(getResources().getString(R.string.gyro));
-        saveToFile(getResources().getString(R.string.noGrav));
-    }
-
-    @Override
     public void onSensorChanged(SensorEvent event) {
         // Calculate elapsed time
         double time = (event.timestamp - startTime) * 1e-9;
@@ -85,7 +64,6 @@ public class SensorService extends Service implements SensorEventListener {
         } else if(event.sensor.getType()==Sensor.TYPE_LINEAR_ACCELERATION){
             noGravData.add(new String[]{format.format(time), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
         }
-
     }
 
     @Override
@@ -95,19 +73,25 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // Required for subclasses of Service but not used here
-        return null;
+        // Start listening for sensor events
+        // 2500 us sets a sampling rate of 400 Hz
+        counter = intent.getIntExtra(getResources().getString(R.string.counter), 0);
+        filePrefix = intent.getStringExtra(getResources().getString(R.string.prefix));
+        startTime = SystemClock.elapsedRealtimeNanos();
+        sensorManager.registerListener(this, accSensor, 2500); // pixel3 seems to be limited to 400hz sampling rate or so
+        sensorManager.registerListener(this, gyroSensor, 2500);
+        sensorManager.registerListener(this, noGravSensor, 2500);
+        return binder;
+    }
+
+    public void stopListener() {
+        sensorManager.unregisterListener(this);
     }
 
     /*
      * Saves accelerometer data to file in Downloads folder.
      */
     public void saveToFile(String sensor) {
-        if (sensor.equals("accelerometer")) {
-            Log.d("acc data", String.valueOf(accData.size()));
-            Log.d("Gyro data", String.valueOf(gyroData.size()));
-            Log.d("grav data", String.valueOf(noGravData.size()));
-        }
         List<String[]> data;
         String filename = filePrefix + sensor + "_" + counter + ".csv";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
@@ -131,5 +115,11 @@ public class SensorService extends Service implements SensorEventListener {
             Toast.makeText(this, "Could not save file.", Toast.LENGTH_LONG).show();
         }
         data.clear();
+    }
+
+    public class SensorBinder extends Binder {
+        public SensorService getSensorService() {
+            return SensorService.this;
+        }
     }
 }
