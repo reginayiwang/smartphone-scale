@@ -61,13 +61,7 @@ public class GyroscopeService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // Calculate elapsed time
-        double time = (event.timestamp - startTime) * 1e-9;
-        DecimalFormat format = (DecimalFormat) NumberFormat.getInstance(Locale.ENGLISH);
-        format.applyPattern("0.000000000E0");
-
-        // Add new sensor values to list
-        data.add(new String[]{format.format(time), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
+        data.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
     }
 
     @Override
