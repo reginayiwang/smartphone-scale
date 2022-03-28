@@ -6,12 +6,10 @@ import csv
 import numpy as np
 import sys
 
-from sklearn.utils import resample
 
-file_name = sys.argv[1]
 
 def resample_and_sync(at,a,wt,w,period=1.0/396.4):
-  period_adjusted = period * 1e9 # in microseconds
+#   period_adjusted = period * 1e9 # in microseconds
 
   start_point = max(at[0],wt[0])
   end_point = min(at[-1],wt[-1])
@@ -20,20 +18,20 @@ def resample_and_sync(at,a,wt,w,period=1.0/396.4):
   a_f = ip.interp1d(at,a,kind=kind)
   w_f = ip.interp1d(wt,w,kind=kind)
 
-  new_t = [start_point + i * period_adjusted for i in range(0,1+int((end_point - start_point)/period_adjusted))]
+  new_t = [start_point + i * period for i in range(0,1+int((end_point - start_point)/period))]
   new_t_seconds = (new_t - start_point)*1e-9
 
   new_a_stack = a_f(new_t)
   new_w_stack = w_f(new_t)
-  S = np.vstack((new_a_stack[:,0],new_a_stack[:,1],new_a_stack[:,2],new_w_stack[:,0],new_w_stack[:,1],new_w_stack[:,2]))
+  S = np.vstack((new_a_stack[0,:],new_a_stack[1,:],new_a_stack[2,:],new_w_stack[0,:],new_w_stack[1,:],new_w_stack[2,:]))
 
-  return new_t_seconds, 1.0/period, S
+  return new_t_seconds, 1.0/(period*1e-9), S
 
 def get_gyroscope_filename(filename):
     split = filename.split('_')
-    split[-1] = 'gyroscope'
+    split[-2] = 'gyroscope'
     
-    return split.join('_')
+    return '_'.join(split)
 
 def load_data(filename, plot_t_stats=False):
     at,ax,ay,az = [],[],[],[]
@@ -61,11 +59,11 @@ def load_data(filename, plot_t_stats=False):
     a = np.vstack((np.array(ax),np.array(ay),np.array(az)))
     w = np.vstack((np.array(wx),np.array(wy),np.array(wz)))
 
+    dt_a = (at[1:] - at[:-1])
+    dt_w = (wt[1:] - wt[:-1])
+
     if plot_t_stats:
         # dt statistics: how stable is our timestamp, how large?
-        dt_a = (at[1:] - at[:-1])
-        dt_w = (wt[1:] - wt[:-1])
-
         print("accelerometer mean, median, std: ", np.mean(dt_a),np.median(dt_a),np.std(dt_a))
         plt.subplot(1,2,1)
         plt.title("dt/median(dt), Accelerometer")
@@ -83,12 +81,12 @@ def load_data(filename, plot_t_stats=False):
 
 
 def plot_spectrograms( S, fs):
-    f, t, Sax = sp.spectrogram(S[:,0], fs, mode='psd')
-    f, t, Say = sp.spectrogram(S[:,1], fs, mode='psd')
-    f, t, Saz = sp.spectrogram(S[:,2], fs, mode='psd')
-    f, t, Swx = sp.spectrogram(S[:,3], fs, mode='psd')
-    f, t, Swy = sp.spectrogram(S[:,4], fs, mode='psd')
-    f, t, Swz = sp.spectrogram(S[:,5], fs, mode='psd')
+    f, t, Sax = sp.spectrogram(S[0,:], fs, mode='psd')
+    f, t, Say = sp.spectrogram(S[1,:], fs, mode='psd')
+    f, t, Saz = sp.spectrogram(S[2,:], fs, mode='psd')
+    f, t, Swx = sp.spectrogram(S[3,:], fs, mode='psd')
+    f, t, Swy = sp.spectrogram(S[4,:], fs, mode='psd')
+    f, t, Swz = sp.spectrogram(S[5,:], fs, mode='psd')
 
 
     plt.subplot(2,3,1)
@@ -187,30 +185,34 @@ def filter_data(S, fs, fc_low=128, fc_high=192, plot_freq_response=False):
         plt.axvline(100, color='green') # cutoff frequency
         plt.show()
 
-    return sp.sosfilt(sos, S, axis=0)
+    return sp.sosfilt(sos, S, axis=1)
 
 def segment_signal(t, S, ref_bounds,obj_bounds):
     # bounds format: (start, stop) in seconds
-    ref_start, ref_stop = t[t<=ref_bounds[0]][-1] if ref_bounds[0] > 0 else 0, t[t<=ref_bounds[1]][-1]
-    obj_start, obj_stop = t[t<=obj_bounds[0]][-1], t[t<=obj_bounds[1]][-1]
+    ref_start, ref_stop = np.argwhere(t<=ref_bounds[0])[-1][0] if ref_bounds[0] > 0 else 0, np.argwhere(t<=ref_bounds[1])[-1][0]
+    obj_start, obj_stop = np.argwhere(t<=obj_bounds[0])[-1][0], np.argwhere(t<=obj_bounds[1])[-1][0]
+    
+    # we should probably enforce the same size if we want to output this raw or if we want to output the full fft to the ml algs
 
-    return S[ref_start:ref_stop,:], S[obj_start:obj_stop, :]
+    return t[ref_start:ref_stop], t[obj_start:obj_stop], S[:, ref_start:ref_stop], S[:, obj_start:obj_stop]
 
 def peak_data(fs, S):
-    #TODO figure out Q/kurtosis/otherwise add more FFT data here 
-    PSD = np.abs(np.fft.fft(S,axis=0))**2
-    
-    peak_freqs, peak_mags = np.empty(6),np.empty(6)
+    #TODO figure out left/right kurtosis stuff/otherwise add more FFT data here 
 
-    f = np.linspace(0,fs/2,PSD.shape[0]//2)
+    PSD = np.abs(np.fft.fft(S,axis=1))**2
+    PSD = PSD[:,:PSD.shape[1]//2]
+    peak_freqs, peak_mags, peak_widths = np.empty(6),np.empty(6), np.empty(6), 
+
+    f = np.linspace(0,fs/2,PSD.shape[1])
 
     for i in range(6):
-        peaks, peaks_dict = sp.find_peaks(PSD[:,i],height=(100,None),width=(None,None),plateau_size=(None,None))
+        peaks, peaks_dict = sp.find_peaks(PSD[i,:],height=(1,None),width=(None,None),plateau_size=(None,None))
         peak_arg = np.argmax(peaks_dict['peak_heights'])
         peak_freqs[i] = f[peaks[peak_arg]]
         peak_mags[i] = peaks_dict['peak_heights'][peak_arg]
+        peak_widths[i] = peaks_dict['widths'][peak_arg]
 
-    return peak_freqs, peak_mags
+    return peak_freqs, peak_mags, peak_widths
     
 def harminv_peaks(S):
     # TODO (secret weapon, like peakfinder but more accurate)
@@ -218,7 +220,8 @@ def harminv_peaks(S):
 
 def classic_intensity(S):
     #original vibroscale feature
-    intensity = np.sum(np.abs(S - np.mean(S, axis=0)), axis=0)/S.shape[0]
+    offset = S - np.expand_dims(np.mean(S, axis=1), axis=-1)
+    intensity = np.sum(np.abs(offset), axis=1)/S.shape[1]
 
     return intensity
 
@@ -226,19 +229,23 @@ def classic_intensity(S):
 def generate_features(t,fs,S,ref_bounds,obj_bounds):
     feature_dict = {}
     
-    ref_S, obj_S = segment_signal(t, S, ref_bounds,obj_bounds)
-    feature_dict['classic'] = (classic_intensity(ref_S), classic_intensity(obj_S)) # ignore in favor of filtered_classic?
+    ref_t, obj_t, ref_S, obj_S = segment_signal(t, S, ref_bounds,obj_bounds)
 
     filtered_S = filter_data(S, fs, 128, 192)
-    filtered_ref_S, filtered_obj_S  = segment_signal(t, filtered_S, ref_bounds,obj_bounds)
-    feature_dict['filtered'] = (classic_intensity(filtered_ref_S), classic_intensity(filtered_obj_S))
+    ref_t, obj_t, filtered_ref_S, filtered_obj_S  = segment_signal(t, filtered_S, ref_bounds,obj_bounds)
+
+    feature_dict['classic_intensity'] = (classic_intensity(ref_S), classic_intensity(obj_S)) # ignore in favor of filtered_classic?
+    feature_dict['filtered_intensity'] = (classic_intensity(filtered_ref_S), classic_intensity(filtered_obj_S))
 
     #Shouldn't need to filter peak-finder data because we're in frequency space anyways\    
-    ref_peak_freqs, ref_peak_mags = peak_data(fs, ref_S)
-    obj_peak_freqs, obj_peak_mags = peak_data(fs, obj_S)
+    ref_peak_freqs, ref_peak_mags, ref_peak_widths = peak_data(fs, ref_S)
+    obj_peak_freqs, obj_peak_mags, obj_peak_widths = peak_data(fs, obj_S)
 
     feature_dict['peak_frequency'] = ref_peak_freqs, obj_peak_freqs
     feature_dict['peak_magnitude'] = ref_peak_mags, obj_peak_mags
+    feature_dict['peak_width'] = ref_peak_widths, obj_peak_widths
+
+    # output raw FFT?
     
     return feature_dict
 
@@ -249,12 +256,14 @@ def generate_features_from_file(filename, ref_bounds= (0,3), obj_bounds = (5,8))
             filename: name of accelerometer csv
             ref bounds = ( start time in seconds, stop time in seconds) of no-object-on-phone-vibration
             obj bounds = ( start time in seconds, stop time in seconds) of object-on-phone-vibration
-        outputs: 
+            
+            outputs: 
             feature_dict:
-                feature_dict['classic'] : original vibroscale calculation, no filtering
-                feature_dict['filtered'] : original vibroscale calculation, filtered around signal
+                feature_dict['classic_intensity'] : original vibroscale calculation, no filtering
+                feature_dict['filtered_intensity'] : original vibroscale calculation, filtered around signal
                 feature_dict['peak_frequency'] : frequency of largest peak in fft
                 feature_dict['peak_magnitude'] : magnitude of largest peak in fft
+                feature_dict['peak_width] : width of largest peak in fft
             
             all features are tuples of (ref_data, obj_data) and all sub-features are 6-dimensional vectors referring to the xyz axis of the accelerometer and then the gyroscope
     """
@@ -265,6 +274,7 @@ def generate_features_from_file(filename, ref_bounds= (0,3), obj_bounds = (5,8))
     return feature_dict
 
 if __name__ == "__main__":
-    # TODO spit out plots for data point
-    pass
-    # file_path = sys.argv[1]
+    features_dict = generate_features_from_file('test_accelerometer_1.csv')
+
+    for key in features_dict.keys():
+        print(key, features_dict[key][0], features_dict[key][1])
