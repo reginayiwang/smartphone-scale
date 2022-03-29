@@ -36,6 +36,7 @@ public class SaveDialog extends AppCompatDialogFragment {
         AlertDialog dialog = builder.create();
         Window window = dialog.getWindow();
         window.setGravity(Gravity.BOTTOM);
+        dialog.setCanceledOnTouchOutside(false);
         return dialog;
     }
 
