@@ -31,10 +31,8 @@ public class SensorService extends Service implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor accSensor;
     private Sensor gyroSensor;
-    private Sensor noGravSensor;
     List<String[]> accData = new ArrayList<>();
     List<String[]> gyroData = new ArrayList<>();
-    List<String[]> noGravData = new ArrayList<>();
 
     public SensorService() {
     }
@@ -45,7 +43,6 @@ public class SensorService extends Service implements SensorEventListener {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        noGravSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
     }
 
     @Override
@@ -54,8 +51,6 @@ public class SensorService extends Service implements SensorEventListener {
             accData.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
         } else if (event.sensor.getType()==Sensor.TYPE_GYROSCOPE){
             gyroData.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
-        } else if(event.sensor.getType()==Sensor.TYPE_LINEAR_ACCELERATION){
-            noGravData.add(new String[]{String.valueOf(event.timestamp), String.valueOf(event.values[0]), String.valueOf(event.values[1]), String.valueOf(event.values[2])});
         }
     }
 
@@ -72,7 +67,6 @@ public class SensorService extends Service implements SensorEventListener {
         filePrefix = intent.getStringExtra(getResources().getString(R.string.prefix));
         sensorManager.registerListener(this, accSensor, 2500); // pixel3 seems to be limited to 400hz sampling rate or so
         sensorManager.registerListener(this, gyroSensor, 2500);
-        sensorManager.registerListener(this, noGravSensor, 2500);
         return binder;
     }
 
@@ -88,13 +82,7 @@ public class SensorService extends Service implements SensorEventListener {
         String filename = filePrefix + sensor + "_" + counter + ".csv";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
 
-        if (sensor.equals(getResources().getString(R.string.acc))) {
-            data = accData;
-        } else if (sensor.equals(getResources().getString(R.string.gyro))) {
-            data = gyroData;
-        } else {
-            data = noGravData;
-        }
+        data = sensor.equals(getResources().getString(R.string.acc)) ? accData : gyroData;
 
         try (CsvWriter csv = CsvWriter.builder().build(file.getAbsoluteFile().toPath())) {
             csv.writeRow("Time (s)", "x", "y", "z");
