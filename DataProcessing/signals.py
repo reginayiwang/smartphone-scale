@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 import sys
+import os
 
 
 
@@ -28,10 +29,10 @@ def resample_and_sync(at,a,wt,w,period=1.0/396.4):
   return new_t_seconds, 1.0/(period*1e-9), S
 
 def get_gyroscope_filename(filename):
-    split = filename.split('_')
+    split = filename.name.split('_')
     split[-2] = 'gyroscope'
     
-    return '_'.join(split)
+    return os.path.join(os.path.split(filename)[0], '_'.join(split))
 
 def load_data(filename, plot_t_stats=False):
     at,ax,ay,az = [],[],[],[]
@@ -247,15 +248,15 @@ def segment_signal(t, S, ref_bounds, obj_bounds):
 
 def peak_data(fs, S):
     #TODO figure out left/right kurtosis stuff/otherwise add more FFT data here 
-
+    #work in log?
     PSD = np.abs(np.fft.fft(S,axis=1))**2
-    PSD = np.log(1+PSD[:,:PSD.shape[1]//2])
+    PSD = PSD[:,:PSD.shape[1]//2] # np.log(1+PSD[:,:PSD.shape[1]//2]) #work in log?
     peak_freqs, peak_mags, left_ips, right_ips = np.empty(6),np.empty(6), np.empty(6), np.empty(6), 
 
     f = np.linspace(0,fs/2,PSD.shape[1])
 
     for i in range(6):
-        peaks, peaks_dict = sp.find_peaks(PSD[i,:],height=(1,None),width=(None,None),plateau_size=(None,None))
+        peaks, peaks_dict = sp.find_peaks(PSD[i,:],height=(0,None),width=(None,None),plateau_size=(None,None))
         peak_arg = np.argmax(peaks_dict['peak_heights'])
         peak_freqs[i] = f[peaks[peak_arg]]
         peak_mags[i] = peaks_dict['peak_heights'][peak_arg]
@@ -310,11 +311,11 @@ def generate_features(t,fs,S,ref_bounds,obj_bounds, mode='div'):
     
     return feature_dict
 
-def generate_features_from_file(filename, ref_bounds= (0.2,2.8), obj_bounds = (5.2,7.8), mode='per'):
+def generate_features_from_file(filename, ref_bounds= (0.1,2.9), obj_bounds = (5.1,7.9), mode='per'):
     """
     main feature generator function for vibroscale
         inputs:
-            filename: name of accelerometer csv
+            filename: name of accelerometer csv (matching gyroscope data will be accessed automatically)
             ref bounds = ( start time in seconds, stop time in seconds) of no-object-on-phone-vibration
             obj bounds = ( start time in seconds, stop time in seconds) of object-on-phone-vibration
             mode = 'div', 'sub', 'per', or None :
@@ -325,36 +326,56 @@ def generate_features_from_file(filename, ref_bounds= (0.2,2.8), obj_bounds = (5
             
             outputs: 
             feature_dict:
-                feature_dict['classic_intensity'] : original vibroscale calculation, no filtering
-                feature_dict['filtered_intensity'] : original vibroscale calculation, filtered around signal
-                feature_dict['peak_frequency'] : frequency of largest peak in fft
-                feature_dict['peak_magnitude'] : magnitude of largest peak in fft
-                feature_dict['left_ips] : left kurtosis, ish (intersection of interpolated peak w/ base)
-                feature_dict['right_ips] : right kurtosis, ish (intersection of interpolated peak w/ base)
+                6-dimensional vectors referring to the xyz axis of the accelerometer and then the gyroscope:
+                    feature_dict['classic_intensity'] : original vibroscale calculation, no filtering
+                    feature_dict['filtered_intensity'] : original vibroscale calculation, filtered around signal
+                    feature_dict['peak_frequency'] : frequency of largest peak in fft
+                    feature_dict['peak_magnitude'] : magnitude of largest peak in fft
+                    feature_dict['left_ips] : left kurtosis, ish (intersection of interpolated peak w/ base)
+                    feature_dict['right_ips] : right kurtosis, ish (intersection of interpolated peak w/ base)
+                1-dim vectors/descriptors
+                    feature_dict['weight'] : int, weight in grams, from filename
+                    feature_dict['class'] : str, type of fruit, from filename
             
             all features are 6-dimensional vectors referring to the xyz axis of the accelerometer and then the gyroscope
     """
 
     t, fs, S = load_data(filename)
 
-
     feature_dict = generate_features(t,fs,S,ref_bounds,obj_bounds, mode)
 
-
+    split = filename.name.split('_')
+    feature_dict['weight'] = int(split[-4])
+    feature_dict['class'] = split[-5]
 
     return feature_dict
 
+def parse_folder(data_path, mode='per'):
+    #should be small enough that we can fit everything in memory, currently at max 36 floats or so per data point
+    output = []
+
+    for file in os.scandir(data_path):
+        split = str(file).split('_')
+        if split[-2] == 'accelerometer':
+            data_features = generate_features_from_file(file, mode=mode)
+            output.append(data_features)
+
+    return output
+
 if __name__ == "__main__":
 
-    t, fs, S = load_data('test_accelerometer_1.csv')
-    filtered_S = filter_data(S, fs, 132, 180, True)
+    # t, fs, S = load_data('test_accelerometer_1.csv')
+    # filtered_S = filter_data(S, fs, 132, 180, True)
 
-    ref_t, obj_t, ref_S, obj_S = segment_signal(t, S, (0.2,2.8),(5.2,7.8))
-    ref_t, obj_t, filtered_ref_S, filtered_obj_S  = segment_signal(t, filtered_S, (0.2,2.8),(5.2,7.8))
+    # ref_t, obj_t, ref_S, obj_S = segment_signal(t, S, (0.2,2.8),(5.2,7.8))
+    # ref_t, obj_t, filtered_ref_S, filtered_obj_S  = segment_signal(t, filtered_S, (0.2,2.8),(5.2,7.8))
 
-    plot_transfer_comparisons(ref_S, obj_S, fs)
-    plot_PSD_comparisons(filtered_ref_S, filtered_obj_S, fs)
+    # plot_transfer_comparisons(ref_S, obj_S, fs)
+    # plot_PSD_comparisons(filtered_ref_S, filtered_obj_S, fs)
 
-    features_dict = generate_features_from_file('test_accelerometer_1.csv', mode='per')
-    for key in features_dict.keys():
-        print(key, features_dict[key])
+    # features_dict = generate_features_from_file('test_accelerometer_1.csv', mode='per')
+    # for key in features_dict.keys():
+    #     print(key, features_dict[key])
+    test = parse_folder('DataProcessing/data/regina_03-29-22')
+    print(sys.getsizeof(test))
+    print(np.random.choice(test))
