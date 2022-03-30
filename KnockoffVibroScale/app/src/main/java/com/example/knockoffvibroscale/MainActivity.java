@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements SaveDialog.ISaveD
     public void saveData() {
         sensorService.saveToFile(getResources().getString(R.string.acc));
         sensorService.saveToFile(getResources().getString(R.string.gyro));
-        sensorService.saveToFile(getResources().getString(R.string.noGrav));
         binding.counter.getEditText().setText(String.valueOf(counter + 1));
     }
 

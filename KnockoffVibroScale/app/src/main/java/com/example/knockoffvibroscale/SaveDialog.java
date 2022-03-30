@@ -5,6 +5,9 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
 
@@ -30,7 +33,11 @@ public class SaveDialog extends AppCompatDialogFragment {
                     }
                 });
         // Create the AlertDialog object and return it
-        return builder.create();
+        AlertDialog dialog = builder.create();
+        Window window = dialog.getWindow();
+        window.setGravity(Gravity.BOTTOM);
+        dialog.setCanceledOnTouchOutside(false);
+        return dialog;
     }
 
     @Override
