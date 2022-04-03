@@ -1,67 +1,57 @@
 import warnings 
 warnings.filterwarnings('ignore')
 
+import csv
+import time
 import signals 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression, Lasso
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
-import matplotlib.pyplot as plt
+from pprint import pprint
+from argparse import ArgumentParser
+from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import RandomizedSearchCV,cross_validate
+from sklearn.model_selection import cross_validate
 
-def evaluate_lr(feats,weights):
-    mod = LinearRegression()
-    cv_score = cross_validate(mod,feats,weights,
-        scoring=['neg_mean_absolute_error','neg_mean_absolute_percentage_error'])
-    mae = cv_score['test_neg_mean_absolute_error'].mean()
-    mape = cv_score['test_neg_mean_absolute_percentage_error'].mean()
-    return mae,mape 
+def get_runtimes(model,feats,weights):
+    start_traintime = time.time()
+    model.fit(feats,weights)
+    end_traintime = time.time() - start_traintime
+    start_testtime = time.time()
+    _ = model.score(feats,weights)
+    end_testtime = time.time() - start_testtime
+    return end_traintime,end_testtime
 
-def evaluate_lasso(feats,weights):
-    mod = Lasso()
-    cv_score = cross_validate(mod,feats,weights,
-        scoring=['neg_mean_absolute_error','neg_mean_absolute_percentage_error'])
-    mae = cv_score['test_neg_mean_absolute_error'].mean()
-    mape = cv_score['test_neg_mean_absolute_percentage_error'].mean()
-    return mae,mape 
-
-def evaluate_rf(feats,weights):
-    params = {
-        'n_estimators' : range(5,500),
-        'max_depth' : list(range(1,20)) + [None],
-        'min_samples_split' : [2,3,4,5,6,10],
-        'min_samples_leaf': [1,2,3,4,5,6,10]}
-
-    cv = RandomizedSearchCV(
-        estimator=RandomForestRegressor(),
-        n_iter=100,
-        param_distributions=params,
-        scoring='neg_mean_absolute_error',
-        verbose=0,
-        n_jobs=32).fit(feats,weights)
-
-    mod = RandomForestRegressor(**cv.best_params_)
-    cv_score = cross_validate(mod,feats,weights,
-        scoring=['neg_mean_absolute_error','neg_mean_absolute_percentage_error'])
-    mae = cv_score['test_neg_mean_absolute_error'].mean()
-    mape = cv_score['test_neg_mean_absolute_percentage_error'].mean()
-    return mae,mape 
+def evaluate(food,feats,weights,models=[]):
+    results = list()
+    for mod in models:
+        cv_score = cross_validate(mod[1],feats,weights,cv=3,
+            scoring=['neg_mean_absolute_error','neg_mean_absolute_percentage_error'])
+        mae = cv_score['test_neg_mean_absolute_error'].mean()
+        mape = cv_score['test_neg_mean_absolute_percentage_error'].mean()
+        train_time,test_time = get_runtimes(mod[1],feats,weights)
+        results.append({
+            'CLASS':food,
+            'MODEL':mod[0],
+            'MAE':round(-mae,4),
+            'MAPE':round(-100*mape,4),
+            'TRAIN TIME':round(train_time,6),
+            'TEST TIME':round(test_time,6)}) 
+    return results
 
 def make_feats(df):
-    feats,weights = [],[] 
+    feats,weights = list(),list() 
     for _,row in df.iterrows():
         cin = row['classic_intensity']
         fin = row['filtered_intensity']
         lips = row['left_ips']
         rips = row['right_ips']
-        pfre = row['peak_frequency']
         pmag = row['peak_magnitude']
-        feats.append(np.concatenate((cin,fin,lips,rips,pfre,pmag),axis=0))
+        pfre = row['peak_frequency']
+        feats.append(np.concatenate((cin,fin,lips,rips,pmag,pfre),axis=0))
         weights.append(row['weight'])
     return [np.array(feats),np.array(weights)]
 
-def prep_data(path='DataProcessing/data/regina_03-29-22'):
+def prep_data(path='data/regina_03-29-22'):
     df = pd.DataFrame.from_dict(signals.parse_folder(path))
     apples = make_feats(df[df['class']=='Apple'])
     onions = make_feats(df[df['class']=='Onion'])
@@ -69,24 +59,30 @@ def prep_data(path='DataProcessing/data/regina_03-29-22'):
     all_food = make_feats(df)
     return {'Apples':apples,'Onions':onions,'Pears':pears,'All Food':all_food}
 
-def main():
-    data = prep_data() 
+def prep_results(fname='results.csv'):
+    fields = ['CLASS','MODEL','MAE','MAPE','TRAIN TIME','TEST TIME']
+    results_file = open(fname,'w')
+    author = csv.DictWriter(results_file,fieldnames=fields) 
+    author.writeheader()
+    return author
+
+def main(args):
+    data = prep_data(args.input_dir) 
+    author = prep_results(args.output_file)
+    names = ['Linear Regression','Lasso','Ridge','Random Forest']
+    models = [LinearRegression(),Lasso(),Ridge(),RandomForestRegressor()]
     for k,v in data.items():
-        print(f'--> Evaluating {k}')
         count,minw,maxw = len(v[1]),v[1].min(),v[1].max()
-        print(f'Count: {count}  Min/Max: {minw}/{maxw}')
-        
-        lr_mae,lr_mape = evaluate_lr(*v)
-        print(f'(Linear Regression)  MAE: {abs(round(lr_mae,4)):.4f}',end='  ')
-        print(f'MAPE: {abs(round(lr_mape,4)*100):2.2f}')
-        
-        lasso_mae,lasso_mape = evaluate_lasso(*v)
-        print(f'(Lasso)  MAE: {abs(round(lasso_mae,4)):.4f}',end='  ')
-        print(f'MAPE: {abs(round(lasso_mape,4)*100):2.2f}')
-        
-        rf_mae,rf_mape = evaluate_rf(*v)
-        print(f'(Random Forest)  MAE: {abs(round(rf_mae,4)):.4f}',end='  ')
-        print(f'MAPE: {abs(round(rf_mape,4)*100):2.2f}\n')
+        results = evaluate(k,v[0],v[1],list(zip(names,models)))
+        author.writerows(results)
+        if args.verbose: 
+            print(f'--> Evaluating {k}')
+            print(f'Count: {count}  Min/Max: {minw}/{maxw}')
+            pprint(results)
 
 if __name__=='__main__':
-    main()
+    parser = ArgumentParser()
+    parser.add_argument('-v','--verbose',default=False,action='store_true')
+    parser.add_argument('-i','--input_dir',default='data/regina_03-29-22')
+    parser.add_argument('-o','--output_file',default='results.csv')
+    main(parser.parse_args())
