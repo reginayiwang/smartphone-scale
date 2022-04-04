@@ -1,0 +1,17 @@
+CLASS,MODEL,MAE,MAPE
+Apples,Linear Regression,15817.1612,12183.1373
+Apples,Lasso,67.0822,94.8351
+Apples,Ridge,88.1108,114.3038
+Apples,Random Forest,40.7509,64.5613
+Onions,Linear Regression,6633.7448,4289.4204
+Onions,Lasso,59.7622,30.0174
+Onions,Ridge,65.7084,33.9533
+Onions,Random Forest,59.8461,30.1338
+Pears,Linear Regression,16224.5655,12729.776
+Pears,Lasso,7.3678,5.3999
+Pears,Ridge,9.7448,7.1838
+Pears,Random Forest,8.4641,6.2094
+All Food,Linear Regression,22348.2021,16360.0714
+All Food,Lasso,41.0917,40.7056
+All Food,Ridge,43.4317,42.6116
+All Food,Random Forest,54.5349,52.1359
