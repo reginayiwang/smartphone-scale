@@ -1,0 +1,79 @@
+Food: Apples
+Model: Lasso
+Score: -13.691334137336028
+Params: {'alpha': 1.0, 'selection': 'cyclic'}
+
+Food: Apples
+Model: Ridge
+Score: -14.602172880288332
+Params: {'alpha': 1.0, 'solver': 'sparse_cg'}
+
+Food: Apples
+Model: Elastic Net
+Score: -22.843899711998965
+Params: {'alpha': 1.0, 'l1_ratio': 0.9, 'selection': 'cyclic'}
+
+Food: Apples
+Model: Random Forest
+Score: -11.29638888888889
+Params: {'ccp_alpha': 0.2, 'criterion': 'absolute_error', 'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 10}
+
+Food: Onions
+Model: Lasso
+Score: -47.63025758350741
+Params: {'alpha': 5.0, 'selection': 'cyclic'}
+
+Food: Onions
+Model: Ridge
+Score: -46.71797068878111
+Params: {'alpha': 1.0, 'solver': 'saga'}
+
+Food: Onions
+Model: Elastic Net
+Score: -46.47468337488637
+Params: {'alpha': 1.0, 'l1_ratio': 0.9, 'selection': 'cyclic'}
+
+Food: Onions
+Model: Random Forest
+Score: -44.255
+Params: {'ccp_alpha': 0.1, 'criterion': 'absolute_error', 'max_depth': 10, 'min_samples_leaf': 5, 'min_samples_split': 2, 'n_estimators': 10}
+
+Food: Pears
+Model: Lasso
+Score: -4.350047407249323
+Params: {'alpha': 1.0, 'selection': 'cyclic'}
+
+Food: Pears
+Model: Ridge
+Score: -4.2610114697635115
+Params: {'alpha': 10.0, 'solver': 'sag'}
+
+Food: Pears
+Model: Elastic Net
+Score: -4.340432821026587
+Params: {'alpha': 1.0, 'l1_ratio': 0.75, 'selection': 'cyclic'}
+
+Food: Pears
+Model: Random Forest
+Score: -3.701000000000002
+Params: {'ccp_alpha': 0.3, 'criterion': 'absolute_error', 'max_depth': 5, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 10}
+
+Food: All Food
+Model: Lasso
+Score: -23.626141115665632
+Params: {'alpha': 1.0, 'selection': 'cyclic'}
+
+Food: All Food
+Model: Ridge
+Score: -23.51990356204761
+Params: {'alpha': 1.0, 'solver': 'cholesky'}
+
+Food: All Food
+Model: Elastic Net
+Score: -26.231704883686625
+Params: {'alpha': 1.0, 'l1_ratio': 0.9, 'selection': 'random'}
+
+Food: All Food
+Model: Random Forest
+Score: -20.45653828197946
+Params: {'ccp_alpha': 0.1, 'criterion': 'squared_error', 'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 10}
