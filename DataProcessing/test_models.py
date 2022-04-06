@@ -60,12 +60,12 @@ def make_feats(df,prune_outliers=True):
     for _,row in df.iterrows():
         if prune_outliers and row['weight'] > mu + 2*std: continue 
         if prune_outliers and row['weight'] < mu - 2*std: continue
-        # cin = row['classic_intensity']
+        cin = row['classic_intensity']
         fin = row['filtered_intensity']
         lips = row['left_ips']
         rips = row['right_ips']
         pmag = row['peak_magnitude']
-        # pfre = row['peak_frequency']
+        pfre = row['peak_frequency']
         feats.append(np.concatenate((fin,lips,rips,pmag),axis=0))
         weights.append(row['weight'])
     return [np.array(feats),np.array(weights)]
@@ -107,7 +107,16 @@ def main(args):
     data = prep_data(args.input_dir) 
     author = prep_results(args.output_file)
     names = ['Linear Regression','Lasso','Ridge','Elastic Net','Random Forest']
-    models = [LinearRegression(),Lasso(),Ridge(),ElasticNet(),RandomForestRegressor()]
+    models = [
+        LinearRegression(),
+        Lasso(alpha=1.0,selection='cyclic'),
+        Ridge(alpha=1.0,solver='saga'),
+        ElasticNet(alpha=1.0,l1_ratio=0.9,selection='cyclic'),
+        RandomForestRegressor(
+            ccp_alpha=0.2,
+            criterion='absolute_error',
+            n_estimators=10,
+            max_depth=5)]
     for k,v in data.items():
         count,minw,maxw = len(v[1]),v[1].min(),v[1].max()
         results = evaluate(k,v[0],v[1],list(zip(names,models)),args.pca)
