@@ -1,0 +1,10 @@
+*0, *1, *2 - experiment repeated 3 times on desk
+*4 - experiment repeated on mousepad
+*5 - experiment repeated with fan on desk
+*6 - experiment repeated with fan on mousepad
+
+datasets:
+0 - no object
+1-7 : whole apple
+8,9 : 3/4 apple (vertical slice)
+10,11 : half apple (horizontal, then vertical)

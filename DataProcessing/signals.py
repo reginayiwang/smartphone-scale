@@ -326,7 +326,7 @@ def generate_features_from_file(filename, ref_bounds= (0.1,2.9), obj_bounds = (5
             
             outputs: 
             feature_dict:
-                6-dimensional vectors referring to the xyz axis of the accelerometer and then the gyroscope:
+                6-dimensional np.array(dtype=float) vectors referring to the xyz axis of the accelerometer and then the gyroscope:
                     feature_dict['classic_intensity'] : original vibroscale calculation, no filtering
                     feature_dict['filtered_intensity'] : original vibroscale calculation, filtered around signal
                     feature_dict['peak_frequency'] : frequency of largest peak in fft
