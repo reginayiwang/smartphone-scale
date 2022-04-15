@@ -14,7 +14,6 @@ def make_feats(acc_file, gyro_file):
     rips = df['right_ips']
     pmag = df['peak_magnitude']
     pfre = df['peak_frequency']
-    print(df)
     return np.concatenate((cin,fin,lips,rips,pmag,pfre),axis=0)
 
 def resample_and_sync(at,a,wt,w,period=1.0/396.4):

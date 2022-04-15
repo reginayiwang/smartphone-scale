@@ -4,7 +4,16 @@ import traceback
 from io import TextIOWrapper
 import signals
 
+apple_model = joblib.load("Apples_ElasticNet_model.pkl")
+onion_model = joblib.load("Onions_ElasticNet_model.pkl")
+pear_model = joblib.load("Pears_ElasticNet_model.pkl")
+all_model = joblib.load("AllFood_ElasticNet_model.pkl")
+
 app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def index():
+    return 'VibroScale Enhanced API'
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -27,8 +36,4 @@ def predict():
 
 
 if __name__ == '__main__':
-    apple_model = joblib.load("Apples_ElasticNet_model.pkl")
-    onion_model = joblib.load("Onions_ElasticNet_model.pkl")
-    pear_model = joblib.load("Pears_ElasticNet_model.pkl")
-    all_model = joblib.load("AllFood_ElasticNet_model.pkl")
     app.run()
