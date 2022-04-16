@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">VibroScale Enhanced</string>
+    <string-array name="item_array">
+        <item>Apple</item>
+        <item>Onion</item>
+        <item>Pear</item>
+        <item>Other</item>
+    </string-array>
+    <string name="acc">accelerometer</string>
+    <string name="gyro">gyroscope</string>
+    <string name="save_message">Save Weigh Data?</string>
+    <string name="save_data">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="acc_key">acc</string>
+    <string name="gyro_key">gyro</string>
+    <string name="csv_type">text/csv</string>
+</resources>
