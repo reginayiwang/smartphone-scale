@@ -61,13 +61,13 @@ def load_data(filename, plot_t_stats=False, OG=False):
             wz.append(float(row[3]))
 
     at, wt = np.array(at), np.array(wt)
-    a = np.vstack((np.array(ax),np.array(ay),np.array(az)))
+    a = np.vstack((np.array(ax),np.array(ay),np.array(az)-9.80665))
     w = np.vstack((np.array(wx),np.array(wy),np.array(wz)))
 
     if OG:
-        at, wt = np.array(at[::2]), np.array(wt[::2])
-        a = np.vstack((np.array(ax[::2]),np.array(ay[::2]),np.array(az[::2])))
-        w = np.vstack((np.array(wx[::2]),np.array(wy[::2]),np.array(wz[::2])))
+        at = at[::2]
+        a = a[::2]
+        w = w[::2]
 
     dt_a = (at[1:] - at[:-1])
     dt_w = (wt[1:] - wt[:-1])
@@ -192,7 +192,7 @@ def generate_features(t,fs,S,ref_bounds,obj_bounds, mode='div', OG=False, Harmin
     filtered_S = filter_data(S, fs, fs/4., None)
 
     if OG:     
-        feature_dict['classic_intensity'] = compare_refs(classic_intensity(ref_S), classic_intensity(obj_S), 'sub') # ignore in favor of filtered_classic?
+        feature_dict['classic_intensity'] = compare_refs(classic_intensity(ref_S), classic_intensity(obj_S), 'sub')[1] # ignore in favor of filtered_classic?
         return feature_dict
         
     # filtered_S = filter_data(S, fs, fs/8., None)
@@ -257,9 +257,9 @@ def generate_features_from_file(filename, ref_bounds= (0.1,2.9), obj_bounds = (5
             all features are 6-dimensional vectors referring to the xyz axis of the accelerometer and then the gyroscope
     """
 
-    t, fs, S = load_data(filename, OG=OG)
+    t, fs, S = load_data(filename, OG)
 
-    feature_dict = generate_features(t,fs,S,ref_bounds,obj_bounds, mode, OG=OG)
+    feature_dict = generate_features(t,fs,S,ref_bounds,obj_bounds, mode, OG)
 
     split = filename.name.split('_')
     feature_dict['weight'] = int(split[-4])
