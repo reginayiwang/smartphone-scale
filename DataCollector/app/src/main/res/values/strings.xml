@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Data Collector</string>
+    <string-array name="item_array">
+        <item>Apple</item>
+        <item>Onion</item>
+        <item>Pear</item>
+    </string-array>
+    <string-array name="amplitude_array">
+        <item>High</item>
+        <item>Low</item>
+        <item>High-Low</item>
+        <item>Increasing</item>
+    </string-array>
+    <string name="high_amp">High</string>
+    <string name="increasing_amp">Increasing</string>
+    <string name="high_low">High-Low</string>
+    <string name="counter_key">counterValue</string>
+    <string name="save_message">Save Weigh Data?</string>
+    <string name="save_data">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="acc">accelerometer</string>
+    <string name="gyro">gyroscope</string>
+    <string name="noGrav">accelerometer-noGravity</string>
+    <string name="counter">counter</string>
+    <string name="prefix">prefix</string>
+</resources>
