@@ -5,3 +5,15 @@ pandas==1.4.1
 scipy==1.7.3
 Werkzeug==2.1.1
 gunicorn==20.1.0
+scikit-learn==1.0.2
+threadpoolctl==2.1.0
+itsdangerous==2.1.2
+importlib-metadata==4.11.3
+Jinja2==3.1.1
+click==8.1.2
+python-dateutil==2.8.2
+pytz==2020.1
+setuptools==52.0.0.post20210125
+zipp==3.3.1
+MarkupSafe==2.0.1
+six==1.16.0
