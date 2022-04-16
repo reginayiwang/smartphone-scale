@@ -7,6 +7,8 @@ import numpy as np
 import sys
 import os
 import harminv
+import pickle
+
 # import tdqm
 
 def resample_and_sync(at,a,wt,w,period=1.0/396.4):
@@ -269,7 +271,7 @@ def generate_features_from_file(filename, ref_bounds= (0.1,2.9), obj_bounds = (5
 
 # def advanced_parse_folder(data_path, mode='per', )
 
-def parse_folder(data_path, mode='per', OG=False):
+def parse_folder(data_path, mode='div', OG=False):
     #should be small enough that we can fit everything in memory, currently at max 36 floats or so per data point
     output = []
 
@@ -297,6 +299,7 @@ if __name__ == "__main__":
     # features_dict = generate_features_from_file('test_accelerometer_1.csv', mode='per')
     # for key in features_dict.keys():
     #     print(key, features_dict[key])
-    test = parse_folder('DataProcessing/data/ben_04-07-22')
-    print(sys.getsizeof(test))
-    print(np.random.choice(test))
+    test = parse_folder('DataProcessing/data/all_data')
+
+    with open("all_data_processed","wb") as f:
+        pickle.dump(test, f)
