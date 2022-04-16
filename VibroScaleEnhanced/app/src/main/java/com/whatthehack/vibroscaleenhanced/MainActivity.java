@@ -125,10 +125,16 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<Weight> call,
                                    Response<Weight> response) {
                 String res = response.body().weight;
-                int weight = (int) Double.parseDouble(res.substring(1, res.length()-1));
-                binding.weight.setText(weight + " g");
+                try {
+                    int weight = (int) Double.parseDouble(res.substring(1, res.length()-1));
+                    binding.weight.setText(weight + " g");
+                    binding.reset.setVisibility(View.VISIBLE);
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "Could not get weight", Toast.LENGTH_LONG).show();
+                    reset(binding.reset);
+                }
                 binding.loading.hide();
-                binding.reset.setVisibility(View.VISIBLE);
+
             }
 
             @Override
