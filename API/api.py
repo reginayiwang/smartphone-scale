@@ -4,10 +4,10 @@ import traceback
 from io import TextIOWrapper
 import signals
 
-apple_model = joblib.load("Apples_ElasticNet_model.pkl")
-onion_model = joblib.load("Onions_ElasticNet_model.pkl")
-pear_model = joblib.load("Pears_ElasticNet_model.pkl")
-all_model = joblib.load("AllFood_ElasticNet_model.pkl")
+apple_model = joblib.load("Apples_RFEElasticNet_model.pkl")
+onion_model = joblib.load("Onions_RFEElasticNet_model.pkl")
+pear_model = joblib.load("Pears_RFEElasticNet_model.pkl")
+all_model = joblib.load("AllFood_RFEElasticNet_model.pkl")
 
 app = Flask(__name__)
 
