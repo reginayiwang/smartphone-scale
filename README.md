@@ -1,6 +1,5 @@
 # Smartphone Scale (VibroScale Enhanced)
 
-Estimate fruit weight using a smartphone vibration motor and accelerometer.  
 This was a group project for the graduate-level Georgia Tech class CS 7470: Mobile & Ubiquitous Computing. Originally inspired by the [2020 VibroScale paper](https://dl.acm.org/doi/10.1145/3410530.3414397) by Zhang et al., this project recreates the baseline approach and then extends it with improved data collection, feature engineering, and regularized regression models.
 
 Initial data collection app |  Improved Data Collector app | VibroScale Enhanced (apple true weight 160g)
